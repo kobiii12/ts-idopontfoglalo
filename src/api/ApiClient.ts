@@ -10,7 +10,7 @@ export class ApiClient {
       throw new Error("Hiba történt a fodrászok lekérdezése során");
     }
     const data = await response.json();
-    return data; // Feltételezzük, hogy a visszakapott adat egy Hairdresser tömb
+    return data;
   }
 
   public static async createAppointment(appointment: Appointment): Promise<any> {
@@ -25,5 +25,14 @@ export class ApiClient {
       throw new Error("Hiba történt az időpont létrehozása során");
     }
     return await response.json();
+  }
+
+  public static async getAppointments(): Promise<Appointment[]> {
+    const response = await fetch(`${this.baseUrl}/appointments`);
+    if (!response.ok) {
+      throw new Error("Hiba történt a foglalások lekérdezése során");
+    }
+    const data = await response.json();
+    return data;
   }
 }
