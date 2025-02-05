@@ -1,0 +1,53 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+background: #f0f0f0;
+color: #333;
+padding: 20px;
+}
+
+header {
+text-align: center;
+margin-bottom: 20px;
+}
+nav a {
+margin: 0 10px;
+text-decoration: none;
+color: #007BFF;
+}
+nav a:hover {
+text-decoration: underline;
+}
+
+main {
+max-width: 1200px;
+margin: 0 auto;
+}
+
+.appointment-list-admin h1 {
+text-align: center;
+margin-bottom: 20px;
+}
+.appointments-container {
+display: flex;
+flex-wrap: wrap;
+gap: 20px;
+justify-content: center;
+}
+.appointment-card {
+background: #fff;
+border: 1px solid #ddd;
+padding: 15px;
+width: 300px;
+border-radius: 5px;
+box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.appointment-card div {
+margin-bottom: 8px;
+font-size: 0.95em;
+}

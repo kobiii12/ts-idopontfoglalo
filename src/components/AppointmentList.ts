@@ -13,7 +13,7 @@ export class AppointmentList {
   }
 
   public async init(): Promise<void> {
-    this.container.innerHTML = "<h1>Admin | Foglalások listázása</h1>";
+    this.container.innerHTML = "<h1>Admin Felület - Foglalások </h1>";
     try {
       this.hairdressers = await ApiClient.getHairdressers();
     } catch (error) {
@@ -28,7 +28,7 @@ export class AppointmentList {
     try {
       this.appointments = await ApiClient.getAppointments();
     } catch (error) {
-      console.error("Error loading appointments:", error);
+      console.error("Hiba a foglalások betöltése során:", error);
       this.appointments = [];
     }
   }
@@ -51,7 +51,7 @@ export class AppointmentList {
         const card = document.createElement("div");
         card.className = "appointment-card";
         
-        const hd = this.hairdressers.find(h => h.id === app.hairdresser_id);
+        const hd = this.hairdressers.find(h => h.id === Number(app.hairdresser_id));
         const hdName = hd ? hd.name : "Ismeretlen";
         
         const hdDiv = document.createElement("div");

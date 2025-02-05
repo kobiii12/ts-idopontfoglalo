@@ -44,27 +44,32 @@ export class AppointmentForm {
         try {
           const appointments = await ApiClient.getAppointments();
           takenSlots = appointments
-            .filter(app => app.hairdresser_id === this.hairdresser.id && app.appointment_date.startsWith(dateInput.value))
-            .map(app => app.appointment_date.split(" ")[1].slice(0, 5));
+            .filter(app =>
+              Number(app.hairdresser_id) === this.hairdresser.id &&
+              app.appointment_date.startsWith(dateInput.value)
+            )
+            .map(app => {
+              return app.appointment_date.split(" ")[1].slice(0, 5);
+            });
         } catch (error) {
-          console.error("Error fetching appointments:", error);
+          console.error("Hiba a foglalások lekérdezésekor:", error);
         }
         availableSlots.forEach(slot => {
-          const slotButton = document.createElement("button");
-          slotButton.textContent = slot;
-          slotButton.className = "timeslot-button";
+          const tile = document.createElement("div");
+          tile.classList.add("timeslot-tile");
+          tile.textContent = slot;
           if (takenSlots.includes(slot)) {
-            slotButton.disabled = true;
-            slotButton.classList.add("taken");
-            slotButton.title = "Ez az időpont már foglalt";
+            tile.classList.add("taken");
           } else {
-            slotButton.addEventListener("click", () => {
-              timeslotsContainer.querySelectorAll("button").forEach(btn => btn.classList.remove("selected"));
-              slotButton.classList.add("selected");
+            tile.classList.add("available");
+            tile.addEventListener("click", () => {
+              const allTiles = timeslotsContainer.querySelectorAll(".timeslot-tile");
+              allTiles.forEach(t => t.classList.remove("selected"));
+              tile.classList.add("selected");
               timeslotsContainer.setAttribute("data-selected-slot", slot);
             });
           }
-          timeslotsContainer.appendChild(slotButton);
+          timeslotsContainer.appendChild(tile);
         });
       }
     });
@@ -113,15 +118,15 @@ export class AppointmentForm {
       try {
         const appointments = await ApiClient.getAppointments();
         const conflict = appointments.some(app =>
-          app.hairdresser_id === this.hairdresser.id &&
+          Number(app.hairdresser_id) === this.hairdresser.id&&
           app.appointment_date === `${dateInput.value} ${selectedSlot}:00`
-        );
+        );        
         if (conflict) {
           alert("Ez az időpont már foglalt. Válassz másikat.");
           return;
         }
       } catch (error) {
-        console.error("Error checking conflicts:", error);
+        console.error("Hiba történt a lefoglalt időpontok lekérdezésekor:", error);
       }
 
       const appointmentDate = `${dateInput.value} ${selectedSlot}:00`;
