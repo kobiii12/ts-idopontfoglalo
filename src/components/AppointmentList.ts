@@ -1,3 +1,4 @@
+import { createEl } from "../utils/dom.js";
 import { Appointment } from "../models/Appointment.js";
 import { Hairdresser } from "../models/Hairdresser.js";
 import { ApiClient } from "../api/ApiClient.js";
@@ -6,14 +7,16 @@ export class AppointmentList {
   private container: HTMLElement;
   private hairdressers: Hairdresser[] = [];
   private appointments: Appointment[] = [];
+  private filterCustomer: string = "";
+  private filterDate: string = "";
+  private filterHairdresser: string = "";
 
   constructor() {
-    this.container = document.createElement("div");
-    this.container.className = "appointment-list-admin";
+    this.container = createEl("div", { className: "appointment-list-admin" });
   }
 
   public async init(): Promise<void> {
-    this.container.innerHTML = "<h1>Admin Felület - Foglalások </h1>";
+    this.container.innerHTML = "<h1>Foglalások</h1>";
     try {
       this.hairdressers = await ApiClient.getHairdressers();
     } catch (error) {
@@ -21,6 +24,7 @@ export class AppointmentList {
       return;
     }
     await this.loadAppointments();
+    this.renderControls();
     this.renderList();
   }
 
@@ -33,51 +37,83 @@ export class AppointmentList {
     }
   }
 
+  private renderControls() {
+    const controlsDiv = createEl("div", { className: "admin-controls" });
+
+    const customerLabel = createEl("label", { text: "Ügyfél név:" });
+    controlsDiv.appendChild(customerLabel);
+    const customerInput = createEl("input", { attributes: { type: "text", placeholder: "Keresés ügyfél névre..." } }) as HTMLInputElement;
+    customerInput.addEventListener("input", () => {
+      this.filterCustomer = customerInput.value.trim().toLowerCase();
+      this.renderList();
+    });
+    controlsDiv.appendChild(customerInput);
+
+    const dateLabel = createEl("label", { text: "Dátum:" });
+    controlsDiv.appendChild(dateLabel);
+    const dateInput = createEl("input", { attributes: { type: "date" } }) as HTMLInputElement;
+    dateInput.addEventListener("change", () => {
+      this.filterDate = dateInput.value;
+      this.renderList();
+    });
+    controlsDiv.appendChild(dateInput);
+
+    const hdLabel = createEl("label", { text: "Fodrász:" });
+    controlsDiv.appendChild(hdLabel);
+    const hdSelect = createEl("select") as HTMLSelectElement;
+    const allOption = createEl("option", { text: "Összes", attributes: { value: "" } });
+    hdSelect.appendChild(allOption);
+    this.hairdressers.forEach(hd => {
+      const option = createEl("option", { text: hd.name, attributes: { value: hd.id.toString() } });
+      hdSelect.appendChild(option);
+    });
+    hdSelect.addEventListener("change", () => {
+      this.filterHairdresser = hdSelect.value;
+      this.renderList();
+    });
+    controlsDiv.appendChild(hdSelect);
+
+    this.container.appendChild(controlsDiv);
+  }
+
   private renderList() {
     const existingList = this.container.querySelector(".appointments-container");
-    if (existingList) {
-      existingList.remove();
+    if (existingList) existingList.remove();
+
+    let filteredAppointments = this.appointments;
+    if (this.filterCustomer) {
+      filteredAppointments = filteredAppointments.filter(app =>
+        app.customer_name.toLowerCase().includes(this.filterCustomer)
+      );
     }
-    
-    const listContainer = document.createElement("div");
-    listContainer.className = "appointments-container";
-    
-    if (this.appointments.length === 0) {
-      const noData = document.createElement("p");
-      noData.textContent = "Nincsenek foglalások.";
+    if (this.filterDate) {
+      filteredAppointments = filteredAppointments.filter(app =>
+        app.appointment_date.startsWith(this.filterDate)
+      );
+    }
+    if (this.filterHairdresser) {
+      filteredAppointments = filteredAppointments.filter(app =>
+        Number(app.hairdresser_id) === Number(this.filterHairdresser)
+      );
+    }
+
+    const listContainer = createEl("div", { className: "appointments-container" });
+    if (filteredAppointments.length === 0) {
+      const noData = createEl("p", { text: "Nincsenek foglalások a megadott szűrőkkel." });
       listContainer.appendChild(noData);
     } else {
-      this.appointments.forEach(app => {
-        const card = document.createElement("div");
-        card.className = "appointment-card";
-        
+      filteredAppointments.forEach(app => {
+        const card = createEl("div", { className: "appointment-card" });
         const hd = this.hairdressers.find(h => h.id === Number(app.hairdresser_id));
         const hdName = hd ? hd.name : "Ismeretlen";
-        
-        const hdDiv = document.createElement("div");
-        hdDiv.textContent = `Fodrász: ${hdName}`;
-        card.appendChild(hdDiv);
-        
-        const dateDiv = document.createElement("div");
-        dateDiv.textContent = `Dátum és idő: ${app.appointment_date}`;
-        card.appendChild(dateDiv);
-        
-        const nameDiv = document.createElement("div");
-        nameDiv.textContent = `Ügyfél: ${app.customer_name}`;
-        card.appendChild(nameDiv);
-        
-        const phoneDiv = document.createElement("div");
-        phoneDiv.textContent = `Telefonszám: ${app.customer_phone}`;
-        card.appendChild(phoneDiv);
-        
-        const serviceDiv = document.createElement("div");
-        serviceDiv.textContent = `Szolgáltatás: ${app.service}`;
-        card.appendChild(serviceDiv);
-        
+        card.appendChild(createEl("div", { text: `Fodrász: ${hdName}` }));
+        card.appendChild(createEl("div", { text: `Dátum és idő: ${app.appointment_date}` }));
+        card.appendChild(createEl("div", { text: `Ügyfél: ${app.customer_name}` }));
+        card.appendChild(createEl("div", { text: `Telefonszám: ${app.customer_phone}` }));
+        card.appendChild(createEl("div", { text: `Szolgáltatás: ${app.service}` }));
         listContainer.appendChild(card);
       });
     }
-    
     this.container.appendChild(listContainer);
   }
 

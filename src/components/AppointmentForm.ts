@@ -1,3 +1,4 @@
+import { createEl } from "../utils/dom.js";
 import { Hairdresser } from "../models/Hairdresser.js";
 import { Appointment } from "../models/Appointment.js";
 import { ApiClient } from "../api/ApiClient.js";
@@ -16,24 +17,22 @@ export class AppointmentForm {
   }
 
   private createForm(): HTMLElement {
-    const formContainer = document.createElement("div");
-    formContainer.className = "appointment-form";
-
-    const title = document.createElement("h2");
-    title.textContent = `Időpontfoglalás: ${this.hairdresser.name}`;
+    const formContainer = createEl("div", { className: "appointment-form" });
+    const title = createEl("h2", { text: `Időpontfoglalás: ${this.hairdresser.name}` });
     formContainer.appendChild(title);
 
-    const dateLabel = document.createElement("label");
-    dateLabel.textContent = "Válassz dátumot:";
-    formContainer.appendChild(dateLabel);
+    const createInput = (labelText: string, type: string, placeholder?: string): HTMLInputElement => {
+      const label = createEl("label", { text: labelText });
+      formContainer.appendChild(label);
+      const input = createEl("input", { attributes: { type, placeholder: placeholder || "" } }) as HTMLInputElement;
+      input.required = true;
+      formContainer.appendChild(input);
+      return input;
+    };
 
-    const dateInput = document.createElement("input");
-    dateInput.type = "date";
-    dateInput.required = true;
-    formContainer.appendChild(dateInput);
+    const dateInput = createInput("Válassz dátumot:", "date");
 
-    const timeslotsContainer = document.createElement("div");
-    timeslotsContainer.className = "timeslots-container";
+    const timeslotsContainer = createEl("div", { className: "timeslots-container" });
     formContainer.appendChild(timeslotsContainer);
 
     dateInput.addEventListener("change", async () => {
@@ -48,16 +47,12 @@ export class AppointmentForm {
               Number(app.hairdresser_id) === this.hairdresser.id &&
               app.appointment_date.startsWith(dateInput.value)
             )
-            .map(app => {
-              return app.appointment_date.split(" ")[1].slice(0, 5);
-            });
+            .map(app => app.appointment_date.split(" ")[1].slice(0, 5));
         } catch (error) {
-          console.error("Hiba a foglalások lekérdezésekor:", error);
+          console.error("Error fetching appointments:", error);
         }
         availableSlots.forEach(slot => {
-          const tile = document.createElement("div");
-          tile.classList.add("timeslot-tile");
-          tile.textContent = slot;
+          const tile = createEl("div", { className: "timeslot-tile", text: slot });
           if (takenSlots.includes(slot)) {
             tile.classList.add("taken");
           } else {
@@ -74,39 +69,21 @@ export class AppointmentForm {
       }
     });
 
-    const nameLabel = document.createElement("label");
-    nameLabel.textContent = "Név:";
-    formContainer.appendChild(nameLabel);
+    const nameInput = createInput("Név:", "text");
+    const phoneInput = createInput("Telefonszám:", "tel");
 
-    const nameInput = document.createElement("input");
-    nameInput.type = "text";
-    nameInput.required = true;
-    formContainer.appendChild(nameInput);
-
-    const phoneLabel = document.createElement("label");
-    phoneLabel.textContent = "Telefonszám:";
-    formContainer.appendChild(phoneLabel);
-
-    const phoneInput = document.createElement("input");
-    phoneInput.type = "tel";
-    phoneInput.required = true;
-    formContainer.appendChild(phoneInput);
-
-    const serviceLabel = document.createElement("label");
-    serviceLabel.textContent = "Szolgáltatás:";
+    const serviceLabel = createEl("label", { text: "Szolgáltatás:" });
     formContainer.appendChild(serviceLabel);
-
-    const serviceSelect = document.createElement("select");
+    const serviceSelect = createEl("select") as HTMLSelectElement;
     this.hairdresser.services.forEach(s => {
-      const option = document.createElement("option");
+      const option = createEl("option", { text: s });
       option.value = s;
-      option.textContent = s;
       serviceSelect.appendChild(option);
     });
     formContainer.appendChild(serviceSelect);
 
-    const submitButton = document.createElement("button");
-    submitButton.textContent = "Lefoglalom";
+    const buttonsContainer = createEl("div", { className: "form-buttons" });
+    const submitButton = createEl("button", { text: "Lefoglalom" });
     submitButton.addEventListener("click", async (e) => {
       e.preventDefault();
       const selectedSlot = timeslotsContainer.getAttribute("data-selected-slot");
@@ -114,21 +91,19 @@ export class AppointmentForm {
         alert("Kérlek tölts ki minden mezőt és válassz időpontot.");
         return;
       }
-
       try {
         const appointments = await ApiClient.getAppointments();
         const conflict = appointments.some(app =>
-          Number(app.hairdresser_id) === this.hairdresser.id&&
+          app.hairdresser_id === this.hairdresser.id &&
           app.appointment_date === `${dateInput.value} ${selectedSlot}:00`
-        );        
+        );
         if (conflict) {
           alert("Ez az időpont már foglalt. Válassz másikat.");
           return;
         }
       } catch (error) {
-        console.error("Hiba történt a lefoglalt időpontok lekérdezésekor:", error);
+        console.error("Hiba az ellenőrzés során:", error);
       }
-
       const appointmentDate = `${dateInput.value} ${selectedSlot}:00`;
       const appointment: Appointment = {
         hairdresser_id: this.hairdresser.id,
@@ -137,32 +112,31 @@ export class AppointmentForm {
         appointment_date: appointmentDate,
         service: serviceSelect.value
       };
-
       try {
         await ApiClient.createAppointment(appointment);
-        alert("Időpont foglalás sikeres!");
+        alert("Foglalásod rögzítettük!");
         this.onSuccess();
       } catch (error) {
         alert("Hiba történt az időpont foglalás során.");
         console.error(error);
       }
     });
-    formContainer.appendChild(submitButton);
+    buttonsContainer.appendChild(submitButton);
 
-    const cancelButton = document.createElement("button");
-    cancelButton.textContent = "Mégse";
+    const cancelButton = createEl("button", { text: "Mégse" });
     cancelButton.addEventListener("click", (e) => {
       e.preventDefault();
       this.onCancel();
     });
-    formContainer.appendChild(cancelButton);
+    buttonsContainer.appendChild(cancelButton);
+
+    formContainer.appendChild(buttonsContainer);
 
     return formContainer;
   }
 
   private getAvailableTimeSlots(date: string): string[] {
-    let startHour = 9;
-    let endHour = 17;
+    let startHour = 9, endHour = 17;
     if (this.hairdresser.work_start_time && this.hairdresser.work_end_time) {
       const [startH] = this.hairdresser.work_start_time.split(":").map(Number);
       const [endH] = this.hairdresser.work_end_time.split(":").map(Number);

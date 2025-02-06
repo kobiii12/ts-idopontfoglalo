@@ -6,39 +6,78 @@
 
 body {
 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-background: #f0f0f0;
+background: #f9f9f9;
 color: #333;
+line-height: 1.6;
 padding: 20px;
 }
 
 header {
-text-align: center;
+display: flex;
+flex-direction: column;
+align-items: center;
 margin-bottom: 20px;
 }
+
+header h1 {
+margin-bottom: 10px;
+}
+
 nav a {
 margin: 0 10px;
 text-decoration: none;
-color: #007BFF;
+color: #307aca;
+padding: 10px;
+border-radius: 5px;
+background-color: #eeeeee;
 }
+
 nav a:hover {
-text-decoration: underline;
+background-color: #fafafa;
+color: rgb(184, 35, 35);
+transition: background 0.3s;
 }
 
 main {
 max-width: 1200px;
 margin: 0 auto;
+padding: 10px 15px;
+border-radius: 5px;
+background-color: #eeeeee;
 }
 
-.appointment-list-admin h1 {
+main h1 {
 text-align: center;
-margin-bottom: 20px;
+margin-bottom: 10px;
 }
+
+.admin-controls {
+margin-bottom: 20px;
+display: flex;
+flex-wrap: wrap;
+gap: 10px;
+justify-content: center;
+align-items: center;
+}
+
+.admin-controls label {
+font-weight: bold;
+}
+
+.admin-controls input,
+.admin-controls select {
+padding: 8px;
+border: 1px solid #ccc;
+border-radius: 3px;
+}
+
 .appointments-container {
 display: flex;
 flex-wrap: wrap;
 gap: 20px;
 justify-content: center;
 }
+
 .appointment-card {
 background: #fff;
 border: 1px solid #ddd;
@@ -47,7 +86,13 @@ width: 300px;
 border-radius: 5px;
 box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
+
 .appointment-card div {
 margin-bottom: 8px;
 font-size: 0.95em;
+}
+
+footer {
+margin-top: 25px;
+text-align: center;
 }
