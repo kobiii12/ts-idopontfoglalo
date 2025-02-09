@@ -4,35 +4,29 @@ import { Appointment } from "../models/Appointment.js";
 export class ApiClient {
   private static baseUrl: string = "http://salonsapi.prooktatas.hu/api";
 
-  public static async getHairdressers(): Promise<Hairdresser[]> {
-    const response = await fetch(`${this.baseUrl}/hairdressers`);
+  private static async request<T>(url: string, options?: RequestInit): Promise<T> {
+    const response = await fetch(url, options);
     if (!response.ok) {
-      throw new Error("Hiba történt a fodrászok lekérdezése során");
+      throw new Error(`Huiba a kérésben: ${response.status}`);
     }
-    const data = await response.json();
-    return data;
+    return (await response.json()) as T;
+  }
+
+  public static async getHairdressers(): Promise<Hairdresser[]> {
+    return this.request<Hairdresser[]>(`${this.baseUrl}/hairdressers`);
   }
 
   public static async createAppointment(appointment: Appointment): Promise<any> {
-    const response = await fetch(`${this.baseUrl}/appointments`, {
+    return this.request<any>(`${this.baseUrl}/appointments`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify(appointment)
     });
-    if (!response.ok) {
-      throw new Error("Hiba történt az időpont létrehozása során");
-    }
-    return await response.json();
   }
 
   public static async getAppointments(): Promise<Appointment[]> {
-    const response = await fetch(`${this.baseUrl}/appointments`);
-    if (!response.ok) {
-      throw new Error("Hiba történt a foglalások lekérdezése során");
-    }
-    const data = await response.json();
-    return data;
+    return this.request<Appointment[]>(`${this.baseUrl}/appointments`);
   }
 }
